@@ -1,16 +1,16 @@
-name: Update Live Events
+name: Update SK Live Playlist
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # Runs every 6 hours
-  workflow_dispatch:      # Allows you to click "Run workflow" manually
-
-permissions:
-  contents: write         # Gives permission to push changes back to the repo
+    - cron: '*/15 * * * *' # Runs every 15 minutes
+  workflow_dispatch:      # Allows manual run from Actions tab
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write # Important for pushing changes
 
     steps:
       - name: Checkout Code
@@ -21,20 +21,20 @@ jobs:
         with:
           python-version: '3.9'
 
-      # FIX: Installs libraries directly (No requirements.txt needed)
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install requests pycryptodome
 
-      - name: Run Decryptor
-        run: python fetch_live.py
+      - name: Run Script
+        # Ensure your python file is named exactly sk_live_v2.py
+        run: python sk_live_v2.py
 
       - name: Commit and Push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add playlist.m3u
-          # The commit will only happen if there are changes
-          git commit -m "Auto-update cricket playlist" || echo "No changes to commit"
+          # Commit only if changes exist
+          git commit -m "Auto-update SK Live matches" || echo "No changes to commit"
           git push
