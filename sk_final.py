@@ -84,17 +84,17 @@ def fetch_match_streams(event_data):
             
             stream_name = item.get('title') or item.get('name') or f"Link {idx+1}"
             
-            # --- EXTRACT KEY & SCHEME FROM 'api' FIELD ---
-            # Based on your Termux output: "api" contains the key
+            # --- EXTRACT KEY FROM 'api' FIELD ---
+            # Your screenshot confirmed the key is stored in "api"
             drm_key = item.get('api', '')
             
             # Start Entry
             entry = f'#EXTINF:-1 tvg-logo="{logo}" group-title="Cricket", {title} ({stream_name})\n'
             
-            # If 'api' field has data (length > 10), treat it as a Key
+            # Use 'api' if it looks like a key (longer than 10 chars)
             if drm_key and len(str(drm_key)) > 10:
-                # 99% of the time, this is ClearKey based on your screenshot
-                entry += '#KODIPROP:inputstream.adaptive.license_type=org.w3.clearkey\n'
+                # CHANGED: Uses "clearkey" instead of "org.w3.clearkey"
+                entry += '#KODIPROP:inputstream.adaptive.license_type=clearkey\n'
                 entry += f'#KODIPROP:inputstream.adaptive.license_key={drm_key}\n'
 
             # Standard Headers
@@ -109,7 +109,7 @@ def fetch_match_streams(event_data):
     return entries
 
 def main():
-    print("🚀 Starting SK Live (API Field Fix)...")
+    print("🚀 Starting SK Live (Final Fix)...")
     all_entries = []
     
     try:
