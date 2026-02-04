@@ -84,50 +84,18 @@ def fetch_match_streams(event_data):
             
             stream_name = item.get('title') or item.get('name') or f"Link {idx+1}"
             
-            # --- AGGRESSIVE KEY DETECTION ---
-            # Checks multiple field names for the key
-            drm_license = (
-                item.get('drmLicense') or 
-                item.get('drm_license') or 
-                item.get('license_key') or 
-                item.get('drm_key') or 
-                item.get('key') or
-                item.get('clear_key')
-            )
+            # --- EXTRACT KEY & SCHEME FROM 'api' FIELD ---
+            # Based on your Termux output: "api" contains the key
+            drm_key = item.get('api', '')
             
-            drm_scheme = item.get('drmScheme') or item.get('drm_scheme')
-
-            # Build Entry
+            # Start Entry
             entry = f'#EXTINF:-1 tvg-logo="{logo}" group-title="Cricket", {title} ({stream_name})\n'
             
-            # If we found ANY license info, add the tags
-            if drm_license:
-                # Default to ClearKey if not specified or if key format looks like JSON/Key
-                is_clearkey = False
-                if not drm_scheme:
-                    if "{" in str(drm_license) or "clearkey" in str(drm_license).lower() or len(str(drm_license)) > 20:
-                        is_clearkey = True
-                        drm_scheme = "org.w3.clearkey"
-                    else:
-                        drm_scheme = "com.widevine.alpha" # Default fallback
-                elif "clearkey" in drm_scheme.lower():
-                    is_clearkey = True
-
-                entry += f'#KODIPROP:inputstream.adaptive.license_type={drm_scheme}\n'
-                
-                # Format the key for Kodi (kid:key) if it comes as JSON
-                final_key = drm_license
-                if is_clearkey and isinstance(drm_license, str) and "{" in drm_license:
-                    try:
-                        k_data = json.loads(drm_license)
-                        if "keys" in k_data:
-                            kid = k_data["keys"][0]["kid"]
-                            k = k_data["keys"][0]["k"]
-                            final_key = f"{kid}:{k}"
-                    except:
-                        pass # Use original if parse fails
-                
-                entry += f'#KODIPROP:inputstream.adaptive.license_key={final_key}\n'
+            # If 'api' field has data (length > 10), treat it as a Key
+            if drm_key and len(str(drm_key)) > 10:
+                # 99% of the time, this is ClearKey based on your screenshot
+                entry += '#KODIPROP:inputstream.adaptive.license_type=org.w3.clearkey\n'
+                entry += f'#KODIPROP:inputstream.adaptive.license_key={drm_key}\n'
 
             # Standard Headers
             entry += f'#EXTVLCOPT:http-user-agent={APP_UA}\n'
@@ -141,7 +109,7 @@ def fetch_match_streams(event_data):
     return entries
 
 def main():
-    print("🚀 Starting SK Live (Key Hunter Mode)...")
+    print("🚀 Starting SK Live (API Field Fix)...")
     all_entries = []
     
     try:
@@ -160,6 +128,7 @@ def main():
                 cat = event.get('category', '').strip().lower()
                 name = event.get('eventName', '').strip().lower()
                 
+                # Broad filter
                 if any(x in cat or x in name for x in ['cricket', 'ipl', 't20', 'live']):
                     all_entries.extend(fetch_match_streams(event))
             except:
