@@ -9,7 +9,7 @@ BASE_URL = "https://sufyanpromax.space"
 KEY = b"l2l5kB7xC5qP1rK1"
 IV = b"p1K5nP7uB8hH1l19"
 
-# Headers mimicking the app
+# Headers
 APP_UA = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
 HEADERS = {
     "User-Agent": APP_UA,
@@ -41,16 +41,10 @@ def decrypt_sk_tech(encrypted_text):
 def fetch_match_streams(event_data):
     entries = []
     
-    # 1. Event Metadata
     event_name = event_data.get('eventName', 'Cricket Match')
     team_a = event_data.get('teamAName', '')
     team_b = event_data.get('teamBName', '')
-    
-    if team_a and team_b:
-        title = f"{team_a} vs {team_b} - {event_name}"
-    else:
-        title = event_name
-        
+    title = f"{team_a} vs {team_b} - {event_name}" if team_a and team_b else event_name
     logo = event_data.get('eventLogo', '')
     link_path = event_data.get('links')
     
@@ -61,12 +55,11 @@ def fetch_match_streams(event_data):
     
     try:
         res = requests.get(full_url, headers=HEADERS, timeout=10)
-        if res.status_code != 200: return []
-            
-        decrypted_streams = decrypt_sk_tech(res.text)
+        decrypted_streams = decrypt_sk_tech(res.text) if res.status_code == 200 else None
+        
         if not decrypted_streams: return []
 
-        # 2. Parse Stream Data
+        # Parse Stream Data
         stream_list = []
         try:
             parsed = json.loads(decrypted_streams)
@@ -81,7 +74,7 @@ def fetch_match_streams(event_data):
             if "http" in decrypted_streams:
                 stream_list = [{"link": decrypted_streams.strip(), "title": "Direct Stream"}]
 
-        # 3. Build M3U Entry
+        # Process each stream
         for idx, item in enumerate(stream_list):
             if not isinstance(item, dict):
                  item = {"link": str(item), "title": f"Link {idx+1}"}
@@ -91,47 +84,55 @@ def fetch_match_streams(event_data):
             
             stream_name = item.get('title') or item.get('name') or f"Link {idx+1}"
             
-            # --- CLEARKEY LOGIC ---
-            drm_scheme = item.get('drmScheme', '').lower()
-            drm_license = item.get('drmLicense', '')
+            # --- AGGRESSIVE KEY DETECTION ---
+            # Checks multiple field names for the key
+            drm_license = (
+                item.get('drmLicense') or 
+                item.get('drm_license') or 
+                item.get('license_key') or 
+                item.get('drm_key') or 
+                item.get('key') or
+                item.get('clear_key')
+            )
             
-            # Auto-detect ClearKey if keys match standard JSON format
-            if 'clearkey' in drm_scheme or 'clearkey' in str(drm_license).lower() or (drm_license and "{" in drm_license):
-                is_clearkey = True
-            else:
-                is_clearkey = False
+            drm_scheme = item.get('drmScheme') or item.get('drm_scheme')
 
-            # Start Entry
+            # Build Entry
             entry = f'#EXTINF:-1 tvg-logo="{logo}" group-title="Cricket", {title} ({stream_name})\n'
             
-            if is_clearkey and drm_license:
-                entry += '#KODIPROP:inputstream.adaptive.license_type=org.w3.clearkey\n'
+            # If we found ANY license info, add the tags
+            if drm_license:
+                # Default to ClearKey if not specified or if key format looks like JSON/Key
+                is_clearkey = False
+                if not drm_scheme:
+                    if "{" in str(drm_license) or "clearkey" in str(drm_license).lower() or len(str(drm_license)) > 20:
+                        is_clearkey = True
+                        drm_scheme = "org.w3.clearkey"
+                    else:
+                        drm_scheme = "com.widevine.alpha" # Default fallback
+                elif "clearkey" in drm_scheme.lower():
+                    is_clearkey = True
+
+                entry += f'#KODIPROP:inputstream.adaptive.license_type={drm_scheme}\n'
                 
-                # Handle JSON format keys {"keys":[{"k":"...","kid":"..."}]} -> kid:k
-                if "{" in drm_license:
+                # Format the key for Kodi (kid:key) if it comes as JSON
+                final_key = drm_license
+                if is_clearkey and isinstance(drm_license, str) and "{" in drm_license:
                     try:
-                        key_data = json.loads(drm_license)
-                        if "keys" in key_data:
-                            kid = key_data["keys"][0]["kid"]
-                            k = key_data["keys"][0]["k"]
-                            entry += f'#KODIPROP:inputstream.adaptive.license_key={kid}:{k}\n'
-                        else:
-                             # Fallback if structure is different
-                             entry += f'#KODIPROP:inputstream.adaptive.license_key={drm_license}\n'
+                        k_data = json.loads(drm_license)
+                        if "keys" in k_data:
+                            kid = k_data["keys"][0]["kid"]
+                            k = k_data["keys"][0]["k"]
+                            final_key = f"{kid}:{k}"
                     except:
-                         # If JSON parse fails, just use raw string
-                         entry += f'#KODIPROP:inputstream.adaptive.license_key={drm_license}\n'
-                else:
-                    # Already in kid:key format
-                    entry += f'#KODIPROP:inputstream.adaptive.license_key={drm_license}\n'
-            
-            # VLC Headers (Just in case)
+                        pass # Use original if parse fails
+                
+                entry += f'#KODIPROP:inputstream.adaptive.license_key={final_key}\n'
+
+            # Standard Headers
             entry += f'#EXTVLCOPT:http-user-agent={APP_UA}\n'
+            entry += f"{stream_url}|User-Agent={APP_UA}&Referer={BASE_URL}/\n"
             
-            # Pipe Syntax (Crucial for playback)
-            final_url = f"{stream_url}|User-Agent={APP_UA}&Referer={BASE_URL}/"
-            
-            entry += f"{final_url}\n"
             entries.append(entry)
 
     except Exception as e:
@@ -140,17 +141,15 @@ def fetch_match_streams(event_data):
     return entries
 
 def main():
-    print("🚀 Starting SK Live (ClearKey Edition)...")
+    print("🚀 Starting SK Live (Key Hunter Mode)...")
     all_entries = []
     
     try:
         res = requests.get(f"{BASE_URL}/events.txt", headers=HEADERS, timeout=15)
         raw_data = decrypt_sk_tech(res.text)
-        
         if not raw_data: return
 
         wrapper_list = json.loads(raw_data)
-        print(f"📋 Scanning {len(wrapper_list)} events...")
         
         for wrapper in wrapper_list:
             event_str = wrapper.get('event')
@@ -161,21 +160,17 @@ def main():
                 cat = event.get('category', '').strip().lower()
                 name = event.get('eventName', '').strip().lower()
                 
-                # Filter for Cricket
-                if 'cricket' in cat or 'cricket' in name or 'ipl' in name or 't20' in name:
-                    match_entries = fetch_match_streams(event)
-                    all_entries.extend(match_entries)
+                if any(x in cat or x in name for x in ['cricket', 'ipl', 't20', 'live']):
+                    all_entries.extend(fetch_match_streams(event))
             except:
                 continue
 
         with open("playlist.m3u", "w", encoding="utf-8") as f:
             f.write("#EXTM3U\n")
-            if all_entries:
-                for entry in all_entries:
-                    f.write(entry)
-                print(f"🎉 Playlist Updated with {len(all_entries)} ClearKey streams!")
-            else:
-                print("⚠️ No live cricket matches found.")
+            for entry in all_entries:
+                f.write(entry)
+        
+        print(f"🎉 Playlist Updated! Saved {len(all_entries)} streams.")
 
     except Exception as e:
         print(f"❌ Error: {e}")
