@@ -7,7 +7,7 @@ on:
     paths:
       - 'playlist.m3u'
   schedule:
-    - cron: '*/15 * * * *' # Har 15 minute check
+    - cron: '*/10 * * * *' # Har 15 minute check
   workflow_dispatch:
 
 jobs:
