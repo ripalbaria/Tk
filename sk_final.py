@@ -2,11 +2,12 @@ import requests
 import base64
 import json
 from datetime import datetime, timedelta
+import pytz # Timezone ke liye
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
 import urllib3
 
-# SSL Warnings disable (Kick API ke liye zaruri)
+# SSL Warnings disable
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # --- CONFIGURATION ---
@@ -14,7 +15,7 @@ BASE_URL = "https://sufyanpromax.space"
 KEY = b"l2l5kB7xC5qP1rK1"
 IV = b"p1K5nP7uB8hH1l19"
 
-# Headers for fetching the playlist only
+# Headers
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
     "Connection": "keep-alive"
@@ -51,41 +52,49 @@ def convert_utc_to_ist(utc_time_str):
     except:
         return utc_time_str
 
-def resolve_kick_video(api_url):
+def process_token_api(token_api_json_str):
     """
-    Kick API se 'playback_url' nikalta hai (Based on tokenApi logic)
+    Universal Resolver with Better Error Handling
     """
-    print(f"      Resolving Kick URL: {api_url}")
     try:
+        data = json.loads(token_api_json_str)
+        api_url = data.get("url")
+        target_key = data.get("link_key")
+        
+        if not api_url or not target_key: return None
+
+        print(f"      ⚙️ Auto-Resolving: {api_url}")
+        
         k_headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept": "application/json"
         }
-        # Verify=False to avoid SSL Timeout
+        
+        # Verify=False is critical here
         resp = requests.get(api_url, headers=k_headers, timeout=10, verify=False)
+        
         if resp.status_code == 200:
-            data = resp.json()
-            # JSON se 'playback_url' nikalo
-            video_url = data.get("playback_url")
-            if video_url:
-                print("      ✅ Kick Resolved Success")
-                return video_url
+            api_resp = resp.json()
+            final_link = api_resp.get(target_key)
+            if final_link:
+                print(f"      ✅ Success! Link Found.")
+                return final_link
+        else:
+            print(f"      ⚠️ Failed with Status: {resp.status_code}") # Pata chalega agar block hua to
+            
     except Exception as e:
-        print(f"      ⚠️ Kick Resolve Failed: {e}")
+        print(f"      ⚠️ TokenAPI Error: {e}")
     
-    return api_url
+    return None
 
 def fetch_match_streams(event_data):
     entries = []
     
-    # --- 1. Info ---
     event_name = event_data.get('eventName', 'Cricket Match')
     team_a = event_data.get('teamAName', '')
     team_b = event_data.get('teamBName', '')
-    
     raw_time = event_data.get('time', '') 
     ist_time = convert_utc_to_ist(raw_time) 
-    
     group_title = f"{event_name} {ist_time}".strip()
     
     if team_a and team_b:
@@ -99,7 +108,7 @@ def fetch_match_streams(event_data):
     if not link_path: return []
 
     full_url = f"{BASE_URL}/{link_path}"
-    print(f"   ⚡ Fetching: {channel_name} ({group_title})")
+    print(f"   ⚡ Fetching: {channel_name}")
     
     try:
         res = requests.get(full_url, headers=HEADERS, timeout=10)
@@ -107,7 +116,6 @@ def fetch_match_streams(event_data):
         
         if not decrypted_streams: return []
 
-        # --- 2. Parse ---
         stream_list = []
         try:
             parsed = json.loads(decrypted_streams)
@@ -122,47 +130,36 @@ def fetch_match_streams(event_data):
             if "http" in decrypted_streams:
                 stream_list = [{"link": decrypted_streams.strip(), "title": "Direct Stream"}]
 
-        # --- 3. Build Entry ---
         for idx, item in enumerate(stream_list):
             if not isinstance(item, dict):
                  item = {"link": str(item), "title": f"Link {idx+1}"}
 
-            stream_url = item.get('link') or item.get('url')
-            if not stream_url: continue
+            original_link = item.get('link') or item.get('url')
+            if not original_link: continue
             
             stream_variant = item.get('title') or item.get('name') or f"Link {idx+1}"
             drm_key = item.get('api', '')
+            token_api_data = item.get('tokenApi', '')
 
-            # --- A. KICK FIX (Resolve it) ---
-            if "kick.com/api" in stream_url:
-                stream_url = resolve_kick_video(stream_url)
+            # === INTELLIGENT RESOLVER ===
+            final_stream_url = original_link
+            if token_api_data and len(str(token_api_data)) > 10:
+                resolved = process_token_api(token_api_data)
+                if resolved:
+                    final_stream_url = resolved
+            # ============================
 
-            # --- B. M3U Entry Start ---
             entry = f'#EXTINF:-1 tvg-logo="{logo}" group-title="{group_title}", {channel_name} ({stream_variant})\n'
             
-            # --- C. DRM Keys ---
             if drm_key and len(str(drm_key)) > 10:
                 entry += '#KODIPROP:inputstream.adaptive.license_type=clearkey\n'
                 entry += f'#KODIPROP:inputstream.adaptive.license_key={drm_key}\n'
 
-            # --- D. URL Handling (Strict) ---
-            # Hotstar already has params (?Cookie=...), don't touch it.
-            # Plain links get headers.
-            
-            if "hotstar.com" in stream_url:
-                # Hotstar: Original URL (headers already inside query params)
-                entry += f"{stream_url}\n"
-            elif "|" in stream_url:
-                # Already has pipe: Original URL
-                entry += f"{stream_url}\n"
-            elif ".m3u8" in stream_url and "kick" not in stream_url:
-                 # Standard m3u8 (Not Hotstar, Not Kick): Add our User-Agent
-                 # Note: Kick resolved URL works better without forcing headers usually
-                 ua = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
-                 entry += f"{stream_url}|User-Agent={ua}\n"
+            if "hotstar.com" in final_stream_url or "|" in final_stream_url:
+                entry += f"{final_stream_url}\n"
             else:
-                # Fallback: Original URL
-                entry += f"{stream_url}\n"
+                ua = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+                entry += f"{final_stream_url}|User-Agent={ua}\n"
             
             entries.append(entry)
 
@@ -172,7 +169,7 @@ def fetch_match_streams(event_data):
     return entries
 
 def main():
-    print("🚀 Starting SK Live (TokenAPI Logic)...")
+    print("🚀 Starting SK Live (Universal + Force Update)...")
     all_entries = []
     
     try:
@@ -196,7 +193,6 @@ def main():
                 cat = event.get('category', '').strip().lower()
                 name = event.get('eventName', '').strip().lower()
                 
-                # Filter: Cricket
                 if 'cricket' in cat or 'cricket' in name:
                     cricket_count += 1
                     match_entries = fetch_match_streams(event)
@@ -204,12 +200,21 @@ def main():
             except:
                 continue
 
+        # --- FORCE UPDATE LOGIC ---
+        # Get Current IST Time
+        tz = pytz.timezone('Asia/Kolkata')
+        now = datetime.now(tz).strftime('%Y-%m-%d %I:%M:%S %p')
+        
         with open("playlist.m3u", "w", encoding="utf-8") as f:
             f.write("#EXTM3U\n")
+            # Ye line har baar badlegi, to Git hamesha update karega!
+            f.write(f"# UPDATED: {now} IST\n") 
+            f.write(f"# Total Matches: {cricket_count}\n\n")
+            
             if all_entries:
                 for entry in all_entries:
                     f.write(entry)
-                print(f"🎉 Playlist Updated! Found {cricket_count} cricket matches.")
+                print(f"🎉 Playlist Updated! Found {cricket_count} matches.")
             else:
                 print("⚠️ No cricket matches found.")
 
