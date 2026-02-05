@@ -41,17 +41,31 @@ def decrypt_sk_tech(encrypted_text):
 def fetch_match_streams(event_data):
     entries = []
     
+    # --- 1. Extract Group & Title Info ---
     event_name = event_data.get('eventName', 'Cricket Match')
     team_a = event_data.get('teamAName', '')
     team_b = event_data.get('teamBName', '')
-    title = f"{team_a} vs {team_b} - {event_name}" if team_a and team_b else event_name
+    raw_time = event_data.get('time', '') # e.g., "14:00:00"
+    
+    # Format Time: "14:00:00" -> "14:00"
+    short_time = raw_time[:5] if raw_time else ""
+    
+    # GROUP NAME: "Women's Premier League 14:00"
+    group_title = f"{event_name} {short_time}".strip()
+    
+    # CHANNEL TITLE: "Royal Challengers Bengaluru vs Delhi Capitals"
+    if team_a and team_b:
+        channel_name = f"{team_a} vs {team_b}"
+    else:
+        channel_name = event_name
+
     logo = event_data.get('eventLogo', '')
     link_path = event_data.get('links')
     
     if not link_path: return []
 
     full_url = f"{BASE_URL}/{link_path}"
-    print(f"   ⚡ Processing: {title}")
+    print(f"   ⚡ Fetching: {channel_name} ({group_title})")
     
     try:
         res = requests.get(full_url, headers=HEADERS, timeout=10)
@@ -59,7 +73,7 @@ def fetch_match_streams(event_data):
         
         if not decrypted_streams: return []
 
-        # Parse Stream Data
+        # --- 2. Parse Streams ---
         stream_list = []
         try:
             parsed = json.loads(decrypted_streams)
@@ -74,7 +88,7 @@ def fetch_match_streams(event_data):
             if "http" in decrypted_streams:
                 stream_list = [{"link": decrypted_streams.strip(), "title": "Direct Stream"}]
 
-        # Process each stream
+        # --- 3. Build M3U Entry ---
         for idx, item in enumerate(stream_list):
             if not isinstance(item, dict):
                  item = {"link": str(item), "title": f"Link {idx+1}"}
@@ -82,25 +96,26 @@ def fetch_match_streams(event_data):
             stream_url = item.get('link') or item.get('url')
             if not stream_url: continue
             
-            stream_name = item.get('title') or item.get('name') or f"Link {idx+1}"
+            stream_variant = item.get('title') or item.get('name') or f"Link {idx+1}"
             
-            # --- EXTRACT KEY FROM 'api' FIELD ---
-            # Your screenshot confirmed the key is stored in "api"
+            # Use 'api' field for Key
             drm_key = item.get('api', '')
             
-            # Start Entry
-            entry = f'#EXTINF:-1 tvg-logo="{logo}" group-title="Cricket", {title} ({stream_name})\n'
+            # Start Entry with GROUP-TITLE
+            entry = f'#EXTINF:-1 tvg-logo="{logo}" group-title="{group_title}", {channel_name} ({stream_variant})\n'
             
-            # Use 'api' if it looks like a key (longer than 10 chars)
+            # Add DRM tags if key exists
             if drm_key and len(str(drm_key)) > 10:
-                # CHANGED: Uses "clearkey" instead of "org.w3.clearkey"
                 entry += '#KODIPROP:inputstream.adaptive.license_type=clearkey\n'
                 entry += f'#KODIPROP:inputstream.adaptive.license_key={drm_key}\n'
 
             # Standard Headers
             entry += f'#EXTVLCOPT:http-user-agent={APP_UA}\n'
-            entry += f"{stream_url}|User-Agent={APP_UA}&Referer={BASE_URL}/\n"
             
+            # Pipe Syntax for Players
+            final_url = f"{stream_url}|User-Agent={APP_UA}&Referer={BASE_URL}/"
+            
+            entry += f"{final_url}\n"
             entries.append(entry)
 
     except Exception as e:
@@ -109,16 +124,21 @@ def fetch_match_streams(event_data):
     return entries
 
 def main():
-    print("🚀 Starting SK Live (Final Fix)...")
+    print("🚀 Starting SK Live (Group & Time Fix)...")
     all_entries = []
     
     try:
         res = requests.get(f"{BASE_URL}/events.txt", headers=HEADERS, timeout=15)
         raw_data = decrypt_sk_tech(res.text)
-        if not raw_data: return
+        
+        if not raw_data: 
+            print("❌ Failed to decrypt main list")
+            return
 
         wrapper_list = json.loads(raw_data)
+        print(f"📋 Found {len(wrapper_list)} total events in file.")
         
+        cricket_count = 0
         for wrapper in wrapper_list:
             event_str = wrapper.get('event')
             if not event_str: continue
@@ -128,21 +148,26 @@ def main():
                 cat = event.get('category', '').strip().lower()
                 name = event.get('eventName', '').strip().lower()
                 
-                # Broad filter
-                if any(x in cat or x in name for x in ['cricket', 'ipl', 't20', 'live']):
-                    all_entries.extend(fetch_match_streams(event))
+                # Filter: Process ONLY Cricket
+                if 'cricket' in cat or 'cricket' in name:
+                    cricket_count += 1
+                    match_entries = fetch_match_streams(event)
+                    all_entries.extend(match_entries)
             except:
                 continue
 
+        # Save Playlist
         with open("playlist.m3u", "w", encoding="utf-8") as f:
             f.write("#EXTM3U\n")
-            for entry in all_entries:
-                f.write(entry)
-        
-        print(f"🎉 Playlist Updated! Saved {len(all_entries)} streams.")
+            if all_entries:
+                for entry in all_entries:
+                    f.write(entry)
+                print(f"🎉 Playlist Updated! Found {cricket_count} cricket matches with {len(all_entries)} streams.")
+            else:
+                print("⚠️ No cricket matches found.")
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"❌ Critical Error: {e}")
 
 if __name__ == "__main__":
     main()
