@@ -6,8 +6,10 @@ https://no.link|User-Agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36
 https://no.link|User-Agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36&Referer=https://sufyanpromax.space/
 #EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/19248/image/dark" group-title="ICC T20 World Cup Warm-up 01:00 PM", Nepal vs Canada (Link 1)
+#KODIPROP:inputstream.adaptive.license_type=clearkey
+#KODIPROP:inputstream.adaptive.license_key=ae7076b647133606b704d33e4cef5134:810251515584cf71216d9a2d1ebf04bb
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36
-https://no.link|User-Agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36&Referer=https://sufyanpromax.space/
+https://livem-d-01-icc-we.akamaized.net/variant/v1/dai-event-prd-pal-west/vcg-01-d/DASH_DASH/Live/channel(vcg-01-ch-hd-10)/manifest.mpd?vcfilter=29556c3f-8914-47f0-8f33-a8930b16d1c7|User-Agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36&Referer=https://sufyanpromax.space/
 #EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/19248/image/dark" group-title="ICC T20 World Cup Warm-up 07:00 PM", New Zealand vs USA (Link 1)
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36
 https://no.link|User-Agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36&Referer=https://sufyanpromax.space/
