@@ -1,25 +1,16 @@
-import requests
+from curl_cffi import requests
 import base64
 import json
 from datetime import datetime, timedelta
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
-import urllib3
-
-# Disable SSL Warnings
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # --- CONFIGURATION ---
 BASE_URL = "https://sufyanpromax.space"
 KEY = b"l2l5kB7xC5qP1rK1"
 IV = b"p1K5nP7uB8hH1l19"
 
-# Headers
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-    "Connection": "keep-alive"
-}
-
+# Decryption Table
 LOOKUP_TABLE = (
     "\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\x08\t\n\u000b\u000c\r\u000e\u000f"
     "\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\x18\x19\x1a\u001b\u001c\u001d\u001e\u001f"
@@ -51,35 +42,28 @@ def convert_utc_to_ist(utc_time_str):
     except:
         return utc_time_str
 
-def process_token_api(token_api_json_str):
-    """ Safely resolves tokenApi. Returns None if it fails. """
+def resolve_kick_link(api_url, target_key="playback_url"):
+    """ Kick Link Resolver using curl_cffi (No Proxy Needed) """
+    print(f"      ⚙️ Resolving Kick URL: {api_url}")
     try:
-        data = json.loads(token_api_json_str)
-        api_url = data.get("url")
-        target_key = data.get("link_key")
-        
-        if not api_url or not target_key: return None
-
-        print(f"      ⚙️ Resolving: {api_url}")
-        
-        k_headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "application/json"
-        }
-        
-        resp = requests.get(api_url, headers=k_headers, timeout=5, verify=False)
+        # Jadu: Chrome Fingerprint use kar rahe hain
+        resp = requests.get(
+            api_url,
+            impersonate="chrome110",
+            timeout=15
+        )
         
         if resp.status_code == 200:
-            api_resp = resp.json()
-            final_link = api_resp.get(target_key)
-            if final_link:
-                print(f"      ✅ Resolved!")
-                return final_link
+            data = resp.json()
+            video_url = data.get(target_key)
+            if video_url:
+                print(f"      ✅ Success! Link Found.")
+                return video_url
         else:
-            print(f"      ⚠️ API Error {resp.status_code}")
+            print(f"      ⚠️ Failed with Status: {resp.status_code}")
             
     except Exception as e:
-        print(f"      ⚠️ Resolver Exception: {e}")
+        print(f"      ⚠️ Resolver Error: {e}")
     
     return None
 
@@ -107,10 +91,10 @@ def fetch_match_streams(event_data):
     print(f"   ⚡ Fetching: {channel_name}")
     
     try:
-        res = requests.get(full_url, headers=HEADERS, timeout=10)
-        if res.status_code != 200: return []
+        # Main list fetch karne ke liye bhi fake browser use karenge
+        res = requests.get(full_url, impersonate="chrome110", timeout=15)
+        decrypted_streams = decrypt_sk_tech(res.text) if res.status_code == 200 else None
         
-        decrypted_streams = decrypt_sk_tech(res.text)
         if not decrypted_streams: return []
 
         stream_list = []
@@ -124,70 +108,62 @@ def fetch_match_streams(event_data):
                 if "http" in decrypted_streams:
                     stream_list = [{"link": decrypted_streams.strip(), "title": "Direct Stream"}]
         except:
-            # Emergency Fallback
             if "http" in decrypted_streams:
                 stream_list = [{"link": decrypted_streams.strip(), "title": "Direct Stream"}]
 
-        # --- SAFER LOOP ---
         for idx, item in enumerate(stream_list):
-            try:
-                if not isinstance(item, dict):
-                    item = {"link": str(item), "title": f"Link {idx+1}"}
+            if not isinstance(item, dict):
+                 item = {"link": str(item), "title": f"Link {idx+1}"}
 
-                original_link = item.get('link') or item.get('url')
-                if not original_link: 
-                    print(f"      ⚠️ Skipping Item {idx}: No Link")
-                    continue
-                
-                stream_variant = item.get('title') or item.get('name') or f"Link {idx+1}"
-                drm_key = item.get('api', '')
-                token_api_data = item.get('tokenApi', '')
+            original_link = item.get('link') or item.get('url')
+            if not original_link: continue
+            
+            stream_variant = item.get('title') or item.get('name') or f"Link {idx+1}"
+            drm_key = item.get('api', '')
+            token_api_data = item.get('tokenApi', '')
 
-                # 1. Try Resolve
-                final_stream_url = original_link
-                if token_api_data and len(str(token_api_data)) > 10:
-                    resolved = process_token_api(token_api_data)
-                    if resolved:
-                        final_stream_url = resolved
-                    else:
-                        print(f"      ⚠️ Resolve Failed. Using Original.")
+            # === KICK RESOLVER LOGIC ===
+            final_stream_url = original_link
+            
+            # Agar TokenApi hai, to resolve karo
+            if token_api_data and len(str(token_api_data)) > 10:
+                try:
+                    t_data = json.loads(token_api_data)
+                    k_url = t_data.get("url")
+                    k_key = t_data.get("link_key")
+                    if k_url and k_key:
+                        resolved = resolve_kick_link(k_url, k_key)
+                        if resolved:
+                            final_stream_url = resolved
+                except:
+                    pass
+            # =======================
 
-                # 2. Build Entry
-                entry = f'#EXTINF:-1 tvg-logo="{logo}" group-title="{group_title}", {channel_name} ({stream_variant})\n'
-                
-                if drm_key and len(str(drm_key)) > 10:
-                    entry += '#KODIPROP:inputstream.adaptive.license_type=clearkey\n'
-                    entry += f'#KODIPROP:inputstream.adaptive.license_key={drm_key}\n'
+            entry = f'#EXTINF:-1 tvg-logo="{logo}" group-title="{group_title}", {channel_name} ({stream_variant})\n'
+            
+            if drm_key and len(str(drm_key)) > 10:
+                entry += '#KODIPROP:inputstream.adaptive.license_type=clearkey\n'
+                entry += f'#KODIPROP:inputstream.adaptive.license_key={drm_key}\n'
 
-                # 3. Add URL (Header Logic)
-                # If Hotstar OR Pipe OR Mpd with no pipe -> Just add URL
-                if "hotstar.com" in final_stream_url:
-                    entry += f"{final_stream_url}\n"
-                elif "|" in final_stream_url:
-                    entry += f"{final_stream_url}\n"
-                else:
-                    # Default UA for plain links
-                    ua = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
-                    entry += f"{final_stream_url}|User-Agent={ua}\n"
-                
-                entries.append(entry)
-                print(f"      ✅ Added: {stream_variant}")
-
-            except Exception as e_inner:
-                print(f"      ❌ Error processing item {idx}: {e_inner}")
-                continue # Skip bad item, but continue loop
+            if "hotstar.com" in final_stream_url or "|" in final_stream_url:
+                entry += f"{final_stream_url}\n"
+            else:
+                ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                entry += f"{final_stream_url}|User-Agent={ua}\n"
+            
+            entries.append(entry)
 
     except Exception as e:
-        print(f"      ❌ Critical Match Error: {e}")
+        print(f"      ❌ Error: {e}")
 
     return entries
 
 def main():
-    print("🚀 Starting SK Live (Safe Mode)...")
+    print("🚀 Starting SK Live (Direct Curl_CFFI)...")
     all_entries = []
     
     try:
-        res = requests.get(f"{BASE_URL}/events.txt", headers=HEADERS, timeout=15)
+        res = requests.get(f"{BASE_URL}/events.txt", impersonate="chrome110", timeout=15)
         raw_data = decrypt_sk_tech(res.text)
         
         if not raw_data: 
@@ -214,7 +190,7 @@ def main():
             except:
                 continue
 
-        # Simple Timestamp
+        # Save Playlist
         utc_now = datetime.utcnow()
         ist_now = utc_now + timedelta(hours=5, minutes=30)
         now_str = ist_now.strftime('%Y-%m-%d %I:%M:%S %p')
@@ -227,12 +203,12 @@ def main():
             if all_entries:
                 for entry in all_entries:
                     f.write(entry)
-                print(f"🎉 Playlist Updated! Matches: {cricket_count}, Links: {len(all_entries)}")
+                print(f"🎉 Playlist Updated! Matches: {cricket_count}")
             else:
                 print("⚠️ No cricket matches found.")
 
     except Exception as e:
-        print(f"❌ Critical Main Error: {e}")
+        print(f"❌ Critical Error: {e}")
 
 if __name__ == "__main__":
     main()
