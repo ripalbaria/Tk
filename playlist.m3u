@@ -1,14 +1,4 @@
 #EXTM3U
-# UPDATED: 2026-02-06 12:30:54 AM IST
-# Total Matches: 1
+# UPDATED: 2026-02-06 12:40:30 AM IST
+# Total Matches: 0
 
-#EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/19974/image/dark" group-title="Women's Premier League 07:30 PM", Royal Challengers Bengaluru vs Delhi Capitals (HINDI)
-https://fa723fc1b171.us-west-2.playback.live-video.net/api/video/v1/us-west-2.196233775518.channel.TsTvbsw6KV8b.m3u8?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzM4NCJ9.eyJhd3M6Y2hhbm5lbC1hcm4iOiJhcm46YXdzOml2czp1cy13ZXN0LTI6MTk2MjMzNzc1NTE4OmNoYW5uZWwvVHNUdmJzdzZLVjhiIiwiYXdzOmFjY2Vzcy1jb250cm9sLWFsbG93LW9yaWdpbiI6Imh0dHBzOi8va2ljay5jb20saHR0cHM6Ly93d3cuZ3N0YXRpYy5jb20saHR0cHM6Ly8qLmtpY2subGl2ZSxodHRwczovL3BsYXllci5raWNrLmNvbSxodHRwczovL2FkbWluLmtpY2suY29tLGh0dHBzOi8vYmV0YS5raWNrLmNvbSxodHRwczovL25leHQua2ljay5jb20saHR0cHM6Ly9kYXNoYm9hcmQua2ljay5jb20saHR0cHM6Ly8qLnByZXZpZXcua2ljay5jb20saHR0cHM6Ly94Ym94LmtpY2suY29tLGh0dHBzOi8vcGxheXN0YXRpb24ua2ljay5jb20saHR0cHM6Ly8qLmtpY2stZGV2ZWxvcG1lbnQuY29tIiwiYXdzOnN0cmljdC1vcmlnaW4tZW5mb3JjZW1lbnQiOmZhbHNlLCJleHAiOjE3NzAzMTg2NTR9.u1nPbm-IhjIN21SAclvS9vmXsUpEOA396ZoESiwwWHC8fxiVNZJQzp2mbmWuqlL6HBxK5RZaTrNU3P_xJna6tRvfClwoTut8r87CWL1jXc_qfiW3PhMikgC7HZI5xdqt|User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
-#EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/19974/image/dark" group-title="Women's Premier League 07:30 PM", Royal Challengers Bengaluru vs Delhi Capitals (ENGLISH 🇮🇳)
-#KODIPROP:inputstream.adaptive.license_type=clearkey
-#KODIPROP:inputstream.adaptive.license_key=fe7718fbb3fb4ba78c07cc0f578744e6:624e24b1843b459fab0a949609416f0d
-https://livetv-push.hotstar.com/dash/live/2002464/sshd1livetvwv/master.mpd?|Cookie=hdntl=exp=1770342424~acl=*sshd1livetv*~id=bc9a08c57948c3c0c24eb966d2823f01~data=hdntl~hmac=2b6710cf494fad721f82ce947510da1684fb0142e350b2bcab6818686a21946b&Origin=https://www.hotstar.com&Referer=https://www.hotstar.com/&User-agent=Hotstar;in.startv.hotstar/25.02.24.8.11169(Android/15)
-#EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/19974/image/dark" group-title="Women's Premier League 07:30 PM", Royal Challengers Bengaluru vs Delhi Capitals (WILLOW ADFREE )
-#KODIPROP:inputstream.adaptive.license_type=clearkey
-#KODIPROP:inputstream.adaptive.license_key=184d72d779d377c28bad6d3823f6add0:95958c6e8fad4ad720559900f8137e6c
-https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/qo2973mfx3/out/v1/3d75b0f59adc4f73830cb677041fb820/cenc.mpd|User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
