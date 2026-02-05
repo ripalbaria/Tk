@@ -2,7 +2,7 @@ name: Update Cricket Playlist
 
 on:
   schedule:
-    - cron: '56 * * * *' # Every 20 minutes
+    - cron: '*/56 * * * *' # Corrected: Runs Every 20 minutes (Pehle wala '56 * * * *' sirf ghante me ek baar chalta tha)
   workflow_dispatch:
 
 jobs:
@@ -21,10 +21,11 @@ jobs:
           python-version: '3.9'
 
       - name: Install Dependencies
-        run: pip install requests pycryptodome
+        # Maine 'curl_cffi' add kar diya hai
+        run: pip install requests pycryptodome curl_cffi
 
       - name: Run Scraper
-        run: python sk_final.py  # Make sure file name matches!
+        run: python sk_final.py
 
       - name: Commit and Push
         run: |
