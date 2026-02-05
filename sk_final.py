@@ -2,12 +2,11 @@ import requests
 import base64
 import json
 from datetime import datetime, timedelta
-# Removed 'pytz' import to fix the error
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
 import urllib3
 
-# SSL Warnings disable
+# Disable SSL Warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # --- CONFIGURATION ---
@@ -53,9 +52,7 @@ def convert_utc_to_ist(utc_time_str):
         return utc_time_str
 
 def process_token_api(token_api_json_str):
-    """
-    Universal Resolver with Better Error Handling
-    """
+    """ Safely resolves tokenApi. Returns None if it fails. """
     try:
         data = json.loads(token_api_json_str)
         api_url = data.get("url")
@@ -63,27 +60,26 @@ def process_token_api(token_api_json_str):
         
         if not api_url or not target_key: return None
 
-        print(f"      ⚙️ Auto-Resolving: {api_url}")
+        print(f"      ⚙️ Resolving: {api_url}")
         
         k_headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept": "application/json"
         }
         
-        # Verify=False is critical here
-        resp = requests.get(api_url, headers=k_headers, timeout=10, verify=False)
+        resp = requests.get(api_url, headers=k_headers, timeout=5, verify=False)
         
         if resp.status_code == 200:
             api_resp = resp.json()
             final_link = api_resp.get(target_key)
             if final_link:
-                print(f"      ✅ Success! Link Found.")
+                print(f"      ✅ Resolved!")
                 return final_link
         else:
-            print(f"      ⚠️ Failed with Status: {resp.status_code}")
+            print(f"      ⚠️ API Error {resp.status_code}")
             
     except Exception as e:
-        print(f"      ⚠️ TokenAPI Error: {e}")
+        print(f"      ⚠️ Resolver Exception: {e}")
     
     return None
 
@@ -112,8 +108,9 @@ def fetch_match_streams(event_data):
     
     try:
         res = requests.get(full_url, headers=HEADERS, timeout=10)
-        decrypted_streams = decrypt_sk_tech(res.text) if res.status_code == 200 else None
+        if res.status_code != 200: return []
         
+        decrypted_streams = decrypt_sk_tech(res.text)
         if not decrypted_streams: return []
 
         stream_list = []
@@ -127,49 +124,66 @@ def fetch_match_streams(event_data):
                 if "http" in decrypted_streams:
                     stream_list = [{"link": decrypted_streams.strip(), "title": "Direct Stream"}]
         except:
+            # Emergency Fallback
             if "http" in decrypted_streams:
                 stream_list = [{"link": decrypted_streams.strip(), "title": "Direct Stream"}]
 
+        # --- SAFER LOOP ---
         for idx, item in enumerate(stream_list):
-            if not isinstance(item, dict):
-                 item = {"link": str(item), "title": f"Link {idx+1}"}
+            try:
+                if not isinstance(item, dict):
+                    item = {"link": str(item), "title": f"Link {idx+1}"}
 
-            original_link = item.get('link') or item.get('url')
-            if not original_link: continue
-            
-            stream_variant = item.get('title') or item.get('name') or f"Link {idx+1}"
-            drm_key = item.get('api', '')
-            token_api_data = item.get('tokenApi', '')
+                original_link = item.get('link') or item.get('url')
+                if not original_link: 
+                    print(f"      ⚠️ Skipping Item {idx}: No Link")
+                    continue
+                
+                stream_variant = item.get('title') or item.get('name') or f"Link {idx+1}"
+                drm_key = item.get('api', '')
+                token_api_data = item.get('tokenApi', '')
 
-            # === INTELLIGENT RESOLVER ===
-            final_stream_url = original_link
-            if token_api_data and len(str(token_api_data)) > 10:
-                resolved = process_token_api(token_api_data)
-                if resolved:
-                    final_stream_url = resolved
-            # ============================
+                # 1. Try Resolve
+                final_stream_url = original_link
+                if token_api_data and len(str(token_api_data)) > 10:
+                    resolved = process_token_api(token_api_data)
+                    if resolved:
+                        final_stream_url = resolved
+                    else:
+                        print(f"      ⚠️ Resolve Failed. Using Original.")
 
-            entry = f'#EXTINF:-1 tvg-logo="{logo}" group-title="{group_title}", {channel_name} ({stream_variant})\n'
-            
-            if drm_key and len(str(drm_key)) > 10:
-                entry += '#KODIPROP:inputstream.adaptive.license_type=clearkey\n'
-                entry += f'#KODIPROP:inputstream.adaptive.license_key={drm_key}\n'
+                # 2. Build Entry
+                entry = f'#EXTINF:-1 tvg-logo="{logo}" group-title="{group_title}", {channel_name} ({stream_variant})\n'
+                
+                if drm_key and len(str(drm_key)) > 10:
+                    entry += '#KODIPROP:inputstream.adaptive.license_type=clearkey\n'
+                    entry += f'#KODIPROP:inputstream.adaptive.license_key={drm_key}\n'
 
-            if "hotstar.com" in final_stream_url or "|" in final_stream_url:
-                entry += f"{final_stream_url}\n"
-            else:
-                ua = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
-                entry += f"{final_stream_url}|User-Agent={ua}\n"
-            
-            entries.append(entry)
+                # 3. Add URL (Header Logic)
+                # If Hotstar OR Pipe OR Mpd with no pipe -> Just add URL
+                if "hotstar.com" in final_stream_url:
+                    entry += f"{final_stream_url}\n"
+                elif "|" in final_stream_url:
+                    entry += f"{final_stream_url}\n"
+                else:
+                    # Default UA for plain links
+                    ua = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+                    entry += f"{final_stream_url}|User-Agent={ua}\n"
+                
+                entries.append(entry)
+                print(f"      ✅ Added: {stream_variant}")
+
+            except Exception as e_inner:
+                print(f"      ❌ Error processing item {idx}: {e_inner}")
+                continue # Skip bad item, but continue loop
 
     except Exception as e:
-        print(f"      ❌ Error: {e}")
+        print(f"      ❌ Critical Match Error: {e}")
 
     return entries
 
 def main():
-    print("🚀 Starting SK Live (No-Pytz Version)...")
+    print("🚀 Starting SK Live (Safe Mode)...")
     all_entries = []
     
     try:
@@ -200,8 +214,7 @@ def main():
             except:
                 continue
 
-        # --- FORCE UPDATE LOGIC (Fixed: No Pytz) ---
-        # Manually calculate IST (UTC + 5:30)
+        # Simple Timestamp
         utc_now = datetime.utcnow()
         ist_now = utc_now + timedelta(hours=5, minutes=30)
         now_str = ist_now.strftime('%Y-%m-%d %I:%M:%S %p')
@@ -214,13 +227,12 @@ def main():
             if all_entries:
                 for entry in all_entries:
                     f.write(entry)
-                print(f"🎉 Playlist Updated! Found {cricket_count} matches.")
+                print(f"🎉 Playlist Updated! Matches: {cricket_count}, Links: {len(all_entries)}")
             else:
                 print("⚠️ No cricket matches found.")
 
     except Exception as e:
-        print(f"❌ Critical Error: {e}")
+        print(f"❌ Critical Main Error: {e}")
 
 if __name__ == "__main__":
     main()
-
