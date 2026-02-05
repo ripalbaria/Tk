@@ -1,4 +1,4 @@
-Name: Sync to Other Repo
+name: Sync to Other Repo
 
 on:
   push:
