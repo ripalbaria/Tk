@@ -10,7 +10,7 @@ BASE_URL = "https://sufyanpromax.space"
 KEY = b"l2l5kB7xC5qP1rK1"
 IV = b"p1K5nP7uB8hH1l19"
 
-# --- GLOBAL VARIABLES (Accessible everywhere) ---
+# --- GLOBAL HEADERS (Moved to top to fix error) ---
 APP_UA = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
 
 HEADERS = {
@@ -41,6 +41,7 @@ def decrypt_sk_tech(encrypted_text):
         return None
 
 def convert_utc_to_ist(utc_time_str):
+    """ Converts server time to Indian Standard Time (IST) """
     try:
         if not utc_time_str: return ""
         utc_time = datetime.strptime(utc_time_str, "%H:%M:%S")
@@ -108,12 +109,14 @@ def fetch_match_streams(event_data):
             if not stream_url: continue
             
             stream_variant = item.get('title') or item.get('name') or f"Link {idx+1}"
+            
+            # Key is in 'api' field
             drm_key = item.get('api', '')
             
             # Start Entry
             entry = f'#EXTINF:-1 tvg-logo="{logo}" group-title="{group_title}", {channel_name} ({stream_variant})\n'
             
-            # DRM
+            # DRM Tags
             if drm_key and len(str(drm_key)) > 10:
                 entry += '#KODIPROP:inputstream.adaptive.license_type=clearkey\n'
                 entry += f'#KODIPROP:inputstream.adaptive.license_key={drm_key}\n'
@@ -160,3 +163,20 @@ def main():
                     cricket_count += 1
                     match_entries = fetch_match_streams(event)
                     all_entries.extend(match_entries)
+            except:
+                continue
+
+        with open("playlist.m3u", "w", encoding="utf-8") as f:
+            f.write("#EXTM3U\n")
+            if all_entries:
+                for entry in all_entries:
+                    f.write(entry)
+                print(f"🎉 Playlist Updated! Found {cricket_count} cricket matches.")
+            else:
+                print("⚠️ No cricket matches found.")
+
+    except Exception as e:
+        print(f"❌ Critical Error: {e}")
+
+if __name__ == "__main__":
+    main()
