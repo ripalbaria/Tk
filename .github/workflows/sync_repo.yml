@@ -1,4 +1,4 @@
-name: Sync to Other Repo
+Name: Sync to Other Repo
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
     paths:
       - 'playlist.m3u'
   schedule:
-    - cron: '*/10 * * * *' # Har 15 minute check
+    # TRICK 1 APPLIED: Runs at minute 8, 23, 38, 53 (Less traffic than */10)
+    - cron: '8,18,28,33,48,58 * * * *'
   workflow_dispatch:
 
 jobs:
