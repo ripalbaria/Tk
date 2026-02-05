@@ -1,9 +1,9 @@
 #EXTM3U
-# UPDATED: 2026-02-05 11:00:44 PM IST
-# Total Matches: 2
+# UPDATED: 2026-02-05 11:10:10 PM IST
+# Total Matches: 1
 
 #EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/19974/image/dark" group-title="Women's Premier League 07:30 PM", Royal Challengers Bengaluru vs Delhi Capitals (HINDI)
-https://kick.com/api/v2/channels/65656576|User-Agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36
+https://fa723fc1b171.us-west-2.playback.live-video.net/api/video/v1/us-west-2.196233775518.channel.TsTvbsw6KV8b.m3u8?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzM4NCJ9.eyJhd3M6Y2hhbm5lbC1hcm4iOiJhcm46YXdzOml2czp1cy13ZXN0LTI6MTk2MjMzNzc1NTE4OmNoYW5uZWwvVHNUdmJzdzZLVjhiIiwiYXdzOmFjY2Vzcy1jb250cm9sLWFsbG93LW9yaWdpbiI6Imh0dHBzOi8va2ljay5jb20saHR0cHM6Ly93d3cuZ3N0YXRpYy5jb20saHR0cHM6Ly8qLmtpY2subGl2ZSxodHRwczovL3BsYXllci5raWNrLmNvbSxodHRwczovL2FkbWluLmtpY2suY29tLGh0dHBzOi8vYmV0YS5raWNrLmNvbSxodHRwczovL25leHQua2ljay5jb20saHR0cHM6Ly9kYXNoYm9hcmQua2ljay5jb20saHR0cHM6Ly8qLnByZXZpZXcua2ljay5jb20saHR0cHM6Ly94Ym94LmtpY2suY29tLGh0dHBzOi8vcGxheXN0YXRpb24ua2ljay5jb20saHR0cHM6Ly8qLmtpY2stZGV2ZWxvcG1lbnQuY29tIiwiYXdzOnN0cmljdC1vcmlnaW4tZW5mb3JjZW1lbnQiOmZhbHNlLCJleHAiOjE3NzAzMTM4MDJ9.Im39GUb3ov5ciDFHrHivbVaUCyUqUOZfCdw7GOoxIB8J5VCcZCin6fmAxFclp44GtF1HyPbXLlkSvsrj6BFxOW0SwFrD9B5h0i0oikWEB63eEnDWCGfUtufBYeIuwIbM|User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
 #EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/19974/image/dark" group-title="Women's Premier League 07:30 PM", Royal Challengers Bengaluru vs Delhi Capitals (ENGLISH 🇮🇳)
 #KODIPROP:inputstream.adaptive.license_type=clearkey
 #KODIPROP:inputstream.adaptive.license_key=fe7718fbb3fb4ba78c07cc0f578744e6:624e24b1843b459fab0a949609416f0d
@@ -11,8 +11,4 @@ https://livetv-push.hotstar.com/dash/live/2002464/sshd1livetvwv/master.mpd?|Cook
 #EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/19974/image/dark" group-title="Women's Premier League 07:30 PM", Royal Challengers Bengaluru vs Delhi Capitals (WILLOW ADFREE )
 #KODIPROP:inputstream.adaptive.license_type=clearkey
 #KODIPROP:inputstream.adaptive.license_key=184d72d779d377c28bad6d3823f6add0:95958c6e8fad4ad720559900f8137e6c
-https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/qo2973mfx3/out/v1/3d75b0f59adc4f73830cb677041fb820/cenc.mpd|User-Agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36
-#EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/19248/image/dark" group-title="ICC T20 World Cup Warm-up 07:00 PM", New Zealand vs USA (Link 1)
-#KODIPROP:inputstream.adaptive.license_type=clearkey
-#KODIPROP:inputstream.adaptive.license_key=90ba58b48fd7cfdc158e3bbf3057efbb:0876c23ccbc33318b4061324dd6e9c3d
-https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/0nnrdbjj9u/out/v1/3ba6cdedd123458191eaabf09ee2a30d/cenc.mpd|User-Agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36
+https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/qo2973mfx3/out/v1/3d75b0f59adc4f73830cb677041fb820/cenc.mpd|User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
