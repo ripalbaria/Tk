@@ -4,13 +4,17 @@ import json
 from datetime import datetime, timedelta
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
+import urllib3
+
+# SSL Warnings disable (Kick API ke liye zaruri)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # --- CONFIGURATION ---
 BASE_URL = "https://sufyanpromax.space"
 KEY = b"l2l5kB7xC5qP1rK1"
 IV = b"p1K5nP7uB8hH1l19"
 
-# Ye Headers sirf JSON file download karne ke liye hain (Player ke liye nahi)
+# Headers for fetching the playlist only
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
     "Connection": "keep-alive"
@@ -47,10 +51,34 @@ def convert_utc_to_ist(utc_time_str):
     except:
         return utc_time_str
 
+def resolve_kick_video(api_url):
+    """
+    Kick API se 'playback_url' nikalta hai (Based on tokenApi logic)
+    """
+    print(f"      Resolving Kick URL: {api_url}")
+    try:
+        k_headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "application/json"
+        }
+        # Verify=False to avoid SSL Timeout
+        resp = requests.get(api_url, headers=k_headers, timeout=10, verify=False)
+        if resp.status_code == 200:
+            data = resp.json()
+            # JSON se 'playback_url' nikalo
+            video_url = data.get("playback_url")
+            if video_url:
+                print("      ✅ Kick Resolved Success")
+                return video_url
+    except Exception as e:
+        print(f"      ⚠️ Kick Resolve Failed: {e}")
+    
+    return api_url
+
 def fetch_match_streams(event_data):
     entries = []
     
-    # --- 1. Event Info ---
+    # --- 1. Info ---
     event_name = event_data.get('eventName', 'Cricket Match')
     team_a = event_data.get('teamAName', '')
     team_b = event_data.get('teamBName', '')
@@ -79,7 +107,7 @@ def fetch_match_streams(event_data):
         
         if not decrypted_streams: return []
 
-        # --- 2. Parse JSON ---
+        # --- 2. Parse ---
         stream_list = []
         try:
             parsed = json.loads(decrypted_streams)
@@ -94,7 +122,7 @@ def fetch_match_streams(event_data):
             if "http" in decrypted_streams:
                 stream_list = [{"link": decrypted_streams.strip(), "title": "Direct Stream"}]
 
-        # --- 3. Build Entry (KEEP IT ORIGINAL) ---
+        # --- 3. Build Entry ---
         for idx, item in enumerate(stream_list):
             if not isinstance(item, dict):
                  item = {"link": str(item), "title": f"Link {idx+1}"}
@@ -104,17 +132,37 @@ def fetch_match_streams(event_data):
             
             stream_variant = item.get('title') or item.get('name') or f"Link {idx+1}"
             drm_key = item.get('api', '')
-            
-            # Start M3U Entry
+
+            # --- A. KICK FIX (Resolve it) ---
+            if "kick.com/api" in stream_url:
+                stream_url = resolve_kick_video(stream_url)
+
+            # --- B. M3U Entry Start ---
             entry = f'#EXTINF:-1 tvg-logo="{logo}" group-title="{group_title}", {channel_name} ({stream_variant})\n'
             
-            # Add DRM Keys (Ye structure ke liye zaruri hai)
+            # --- C. DRM Keys ---
             if drm_key and len(str(drm_key)) > 10:
                 entry += '#KODIPROP:inputstream.adaptive.license_type=clearkey\n'
                 entry += f'#KODIPROP:inputstream.adaptive.license_key={drm_key}\n'
 
-            # Add URL (EXACTLY AS RECEIVED - NO MODIFICATION)
-            entry += f"{stream_url}\n"
+            # --- D. URL Handling (Strict) ---
+            # Hotstar already has params (?Cookie=...), don't touch it.
+            # Plain links get headers.
+            
+            if "hotstar.com" in stream_url:
+                # Hotstar: Original URL (headers already inside query params)
+                entry += f"{stream_url}\n"
+            elif "|" in stream_url:
+                # Already has pipe: Original URL
+                entry += f"{stream_url}\n"
+            elif ".m3u8" in stream_url and "kick" not in stream_url:
+                 # Standard m3u8 (Not Hotstar, Not Kick): Add our User-Agent
+                 # Note: Kick resolved URL works better without forcing headers usually
+                 ua = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+                 entry += f"{stream_url}|User-Agent={ua}\n"
+            else:
+                # Fallback: Original URL
+                entry += f"{stream_url}\n"
             
             entries.append(entry)
 
@@ -124,7 +172,7 @@ def fetch_match_streams(event_data):
     return entries
 
 def main():
-    print("🚀 Starting SK Live (Original Links Only)...")
+    print("🚀 Starting SK Live (TokenAPI Logic)...")
     all_entries = []
     
     try:
@@ -148,7 +196,7 @@ def main():
                 cat = event.get('category', '').strip().lower()
                 name = event.get('eventName', '').strip().lower()
                 
-                # Filter: Cricket Only
+                # Filter: Cricket
                 if 'cricket' in cat or 'cricket' in name:
                     cricket_count += 1
                     match_entries = fetch_match_streams(event)
@@ -170,4 +218,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
