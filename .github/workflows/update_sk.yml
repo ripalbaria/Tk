@@ -2,7 +2,7 @@ name: Update Cricket Playlist
 
 on:
   schedule:
-    - cron: '*/20 * * * *' # Every 20 minutes
+    - cron: '*/10 * * * *' # Every 20 minutes
   workflow_dispatch:
 
 jobs:
