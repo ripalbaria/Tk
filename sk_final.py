@@ -2,7 +2,7 @@ import requests
 import base64
 import json
 from datetime import datetime, timedelta
-import pytz # Timezone ke liye
+# Removed 'pytz' import to fix the error
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
 import urllib3
@@ -80,7 +80,7 @@ def process_token_api(token_api_json_str):
                 print(f"      ✅ Success! Link Found.")
                 return final_link
         else:
-            print(f"      ⚠️ Failed with Status: {resp.status_code}") # Pata chalega agar block hua to
+            print(f"      ⚠️ Failed with Status: {resp.status_code}")
             
     except Exception as e:
         print(f"      ⚠️ TokenAPI Error: {e}")
@@ -169,7 +169,7 @@ def fetch_match_streams(event_data):
     return entries
 
 def main():
-    print("🚀 Starting SK Live (Universal + Force Update)...")
+    print("🚀 Starting SK Live (No-Pytz Version)...")
     all_entries = []
     
     try:
@@ -200,15 +200,15 @@ def main():
             except:
                 continue
 
-        # --- FORCE UPDATE LOGIC ---
-        # Get Current IST Time
-        tz = pytz.timezone('Asia/Kolkata')
-        now = datetime.now(tz).strftime('%Y-%m-%d %I:%M:%S %p')
+        # --- FORCE UPDATE LOGIC (Fixed: No Pytz) ---
+        # Manually calculate IST (UTC + 5:30)
+        utc_now = datetime.utcnow()
+        ist_now = utc_now + timedelta(hours=5, minutes=30)
+        now_str = ist_now.strftime('%Y-%m-%d %I:%M:%S %p')
         
         with open("playlist.m3u", "w", encoding="utf-8") as f:
             f.write("#EXTM3U\n")
-            # Ye line har baar badlegi, to Git hamesha update karega!
-            f.write(f"# UPDATED: {now} IST\n") 
+            f.write(f"# UPDATED: {now_str} IST\n") 
             f.write(f"# Total Matches: {cricket_count}\n\n")
             
             if all_entries:
@@ -223,3 +223,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
