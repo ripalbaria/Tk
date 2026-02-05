@@ -8,7 +8,7 @@ on:
       - 'playlist.m3u'
   schedule:
     # TRICK 1 APPLIED: Runs at minute 8, 23, 38, 53 (Less traffic than */10)
-    - cron: '8,18,28,38,48,58 * * * *'
+    - cron: '58 * * * *'
   workflow_dispatch:
 
 jobs:
