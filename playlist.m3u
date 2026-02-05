@@ -7,6 +7,11 @@ https://kick.com/api/v2/channels/65656576|User-Agent=Mozilla/5.0 (Linux; Android
 #KODIPROP:inputstream.adaptive.license_key=fe7718fbb3fb4ba78c07cc0f578744e6:624e24b1843b459fab0a949609416f0d
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36
 https://livetv-push.hotstar.com/dash/live/2002464/sshd1livetvwv/master.mpd?|Cookie=hdntl=exp=1770342424~acl=*sshd1livetv*~id=bc9a08c57948c3c0c24eb966d2823f01~data=hdntl~hmac=2b6710cf494fad721f82ce947510da1684fb0142e350b2bcab6818686a21946b&Origin=https://www.hotstar.com&Referer=https://www.hotstar.com/&User-agent=Hotstar;in.startv.hotstar/25.02.24.8.11169(Android/15)|User-Agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36&Referer=https://sufyanpromax.space/
+#EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/19974/image/dark" group-title="Women's Premier League 07:30 PM", Royal Challengers Bengaluru vs Delhi Capitals (WILLOW ADFREE )
+#KODIPROP:inputstream.adaptive.license_type=clearkey
+#KODIPROP:inputstream.adaptive.license_key=184d72d779d377c28bad6d3823f6add0:95958c6e8fad4ad720559900f8137e6c
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36
+https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/qo2973mfx3/out/v1/3d75b0f59adc4f73830cb677041fb820/cenc.mpd|User-Agent=Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36&Referer=https://sufyanpromax.space/
 #EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/19248/image/dark" group-title="ICC T20 World Cup Warm-up 07:00 PM", New Zealand vs USA (Link 1)
 #KODIPROP:inputstream.adaptive.license_type=clearkey
 #KODIPROP:inputstream.adaptive.license_key=90ba58b48fd7cfdc158e3bbf3057efbb:0876c23ccbc33318b4061324dd6e9c3d
