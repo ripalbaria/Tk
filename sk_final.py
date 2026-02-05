@@ -1,6 +1,7 @@
 import requests
 import base64
 import json
+from datetime import datetime, timedelta
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
 
@@ -9,10 +10,8 @@ BASE_URL = "https://sufyanpromax.space"
 KEY = b"l2l5kB7xC5qP1rK1"
 IV = b"p1K5nP7uB8hH1l19"
 
-# Headers
-APP_UA = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
 HEADERS = {
-    "User-Agent": APP_UA,
+    "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
     "Connection": "keep-alive"
 }
 
@@ -38,22 +37,34 @@ def decrypt_sk_tech(encrypted_text):
     except:
         return None
 
+def convert_utc_to_ist(utc_time_str):
+    """ Converts '11:30:00' (UTC) to '05:00 PM' (IST) """
+    try:
+        if not utc_time_str: return ""
+        # Parse the server time
+        utc_time = datetime.strptime(utc_time_str, "%H:%M:%S")
+        # Add 5 hours and 30 minutes
+        ist_time = utc_time + timedelta(hours=5, minutes=30)
+        # Format nicely (e.g., 05:00 PM)
+        return ist_time.strftime("%I:%M %p")
+    except:
+        return utc_time_str # Fallback to original if error
+
 def fetch_match_streams(event_data):
     entries = []
     
-    # --- 1. Extract Group & Title Info ---
+    # --- 1. Info & Time Conversion ---
     event_name = event_data.get('eventName', 'Cricket Match')
     team_a = event_data.get('teamAName', '')
     team_b = event_data.get('teamBName', '')
-    raw_time = event_data.get('time', '') # e.g., "14:00:00"
+    raw_time = event_data.get('time', '') # Server gives "11:30:00"
     
-    # Format Time: "14:00:00" -> "14:00"
-    short_time = raw_time[:5] if raw_time else ""
+    # Convert to IST
+    ist_time = convert_utc_to_ist(raw_time) # Becomes "05:00 PM"
     
-    # GROUP NAME: "Women's Premier League 14:00"
-    group_title = f"{event_name} {short_time}".strip()
+    # Group Title: "ICC T20 World Cup Warm-up 05:00 PM"
+    group_title = f"{event_name} {ist_time}".strip()
     
-    # CHANNEL TITLE: "Royal Challengers Bengaluru vs Delhi Capitals"
     if team_a and team_b:
         channel_name = f"{team_a} vs {team_b}"
     else:
@@ -97,22 +108,18 @@ def fetch_match_streams(event_data):
             if not stream_url: continue
             
             stream_variant = item.get('title') or item.get('name') or f"Link {idx+1}"
-            
-            # Use 'api' field for Key
             drm_key = item.get('api', '')
             
             # Start Entry with GROUP-TITLE
             entry = f'#EXTINF:-1 tvg-logo="{logo}" group-title="{group_title}", {channel_name} ({stream_variant})\n'
             
-            # Add DRM tags if key exists
+            # DRM Tags
             if drm_key and len(str(drm_key)) > 10:
                 entry += '#KODIPROP:inputstream.adaptive.license_type=clearkey\n'
                 entry += f'#KODIPROP:inputstream.adaptive.license_key={drm_key}\n'
 
-            # Standard Headers
+            # Headers
             entry += f'#EXTVLCOPT:http-user-agent={APP_UA}\n'
-            
-            # Pipe Syntax for Players
             final_url = f"{stream_url}|User-Agent={APP_UA}&Referer={BASE_URL}/"
             
             entry += f"{final_url}\n"
@@ -124,7 +131,7 @@ def fetch_match_streams(event_data):
     return entries
 
 def main():
-    print("🚀 Starting SK Live (Group & Time Fix)...")
+    print("🚀 Starting SK Live (IST Time Fix)...")
     all_entries = []
     
     try:
@@ -136,7 +143,7 @@ def main():
             return
 
         wrapper_list = json.loads(raw_data)
-        print(f"📋 Found {len(wrapper_list)} total events in file.")
+        print(f"📋 Found {len(wrapper_list)} total events.")
         
         cricket_count = 0
         for wrapper in wrapper_list:
@@ -148,7 +155,7 @@ def main():
                 cat = event.get('category', '').strip().lower()
                 name = event.get('eventName', '').strip().lower()
                 
-                # Filter: Process ONLY Cricket
+                # Filter: Cricket Only
                 if 'cricket' in cat or 'cricket' in name:
                     cricket_count += 1
                     match_entries = fetch_match_streams(event)
@@ -156,13 +163,12 @@ def main():
             except:
                 continue
 
-        # Save Playlist
         with open("playlist.m3u", "w", encoding="utf-8") as f:
             f.write("#EXTM3U\n")
             if all_entries:
                 for entry in all_entries:
                     f.write(entry)
-                print(f"🎉 Playlist Updated! Found {cricket_count} cricket matches with {len(all_entries)} streams.")
+                print(f"🎉 Playlist Updated! Found {cricket_count} cricket matches.")
             else:
                 print("⚠️ No cricket matches found.")
 
