@@ -33,5 +33,5 @@ jobs:
           fi
 
       - name: Run Script
-        run: python persistent_debug.py
+        run: python lite_gen.py
 
