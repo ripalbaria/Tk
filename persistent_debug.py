@@ -2,14 +2,13 @@ import asyncio
 import os
 from playwright.async_api import async_playwright
 
-async def run_persistent_success():
+async def run_packet_sniffer():
     async with async_playwright() as p:
-        # Browser cache storage setup
+        # Browser session storage
         user_data_dir = "./browser_session"
-        if not os.path.exists(user_data_dir):
-            os.makedirs(user_data_dir)
-
-        # Launching Persistent Context (Mirroring Heavy Script Logic)
+        
+        # 1. Launch Lite Browser (Persistent but clean)
+        # Hum caching use kar rahe hain isliye ye 'Lite' hi rahega
         context = await p.chromium.launch_persistent_context(
             user_data_dir,
             headless=True,
@@ -17,48 +16,50 @@ async def run_persistent_success():
         )
         page = context.pages[0] if context.pages else await context.new_page()
 
-        # SUCCESS LOGIC: EXACT same listener used in 'simulate_browser' (156796.jpg)
-        found_aws_link = None
-        async def on_request(request):
-            nonlocal found_aws_link
-            # Toolkit style pattern from your success screenshot
+        # 2. EVERY PACKET SNIFFER (Exactly like HTTP Toolkit)
+        found_link = None
+        async def handle_request(request):
+            nonlocal found_link
+            # Amazon IVS pattern dhoondna (Screenshot 156691 success logic)
             if "playback.live-video.net" in request.url and ".m3u8" in request.url:
-                found_aws_link = request.url
+                found_link = request.url
+                print(f"🎯 PACKET CAPTURED: {found_link}")
 
-        page.on("request", on_request)
+        # Toolkit style listener start
+        page.on("request", handle_request)
 
-        # Target Channel ID
-        target_id = "65656576"
-        url = f"https://allrounderlive.pages.dev/dilz?id={target_id}"
-        print(f"📡 Mirror Scanning: {url}")
+        url = "https://allrounderlive.pages.dev/dilz?id=65656576"
+        print(f"📡 Universal Packet Sniffing: {url}")
 
         try:
-            # 1. Wait until network is fully IDLE (Heavy script strategy)
+            # 3. Aggressive Loading (Mirroring Heavy Script success)
+            # 60s timeout taaki heavy scripts ko load hone ka poora mauka mile
             await page.goto(url, wait_until="networkidle", timeout=60000)
             
-            # 2. TRIGGER interaction exactly like 156796.jpg
-            print("🖱️ Simulating Success Interaction (Clicking stream)...")
-            await page.mouse.click(100, 100)
+            # TRIGGER: Player ko click karna zaroori hai (Screenshot 156796)
+            print("🖱️ Simulating user interaction...")
+            await page.mouse.click(100, 100) 
+            await asyncio.sleep(5)
+            await page.mouse.click(250, 250) 
             
-            # 3. PATIENCE: Wait for the EXACT same duration that worked (45-50s)
-            print("⏳ Waiting for background traffic capture (30s)...")
-            await asyncio.sleep(30)
+            # Final Wait: Wahi 47s window jo heavy script ko chahiye tha
+            print("⏳ Scanning background traffic (40s)...")
+            await asyncio.sleep(40)
 
-            if found_aws_link:
-                print(f"✅ SUCCESS! TOOLKIT LINK CAPTURED: {found_aws_link}")
-                # Write to file for playlist update
+            if found_link:
+                print(f"✅ SUCCESS! SAVING LINK: {found_link}")
                 with open("live_link.txt", "w") as f:
-                    f.write(found_aws_link)
+                    f.write(found_link)
             else:
-                # Fallback: Print what browser actually sees
-                print("❌ Link nahi mila traffic me.")
-                title = await page.title()
-                print(f"💡 Page Status: {title}")
+                # Fallback: Agar splash screen par atka hai (Screenshot 1770367960149)
+                print("❌ Packet nahi mila. Splash screen check...")
+                status = await page.evaluate("() => document.title")
+                print(f"💡 Page Title: {status}")
 
         except Exception as e:
-            print(f"💥 Browser Error: {e}")
+            print(f"💥 Sniffer Error: {e}")
 
         await context.close()
 
 if __name__ == "__main__":
-    asyncio.run(run_persistent_success())
+    asyncio.run(run_packet_sniffer())
