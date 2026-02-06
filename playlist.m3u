@@ -1,4 +1,12 @@
 #EXTM3U
-# UPDATED: 2026-02-06 09:20:28 AM IST
-# Total Matches: 0
+# UPDATED: 2026-02-06 09:30:53 AM IST
+# Total Matches: 4
 
+#EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/19248/image/dark" group-title="ICC T20 World Cup Warm-up 03:00 PM", Italy vs United Arab Emirates (Link 1)
+https://no.link|User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+#EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/11182/image/dark" group-title="ICC U19 World Cup 01:00 PM", England Under-19 vs India Under-19 (Link 1)
+https://no.link|User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+#EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/11191/image/dark" group-title="T20 International 09:30 PM", South Africa vs West Indies (Link 1)
+https://no.link|User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+#EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/19248/image/dark" group-title="ICC T20 World Cup Warm-up 05:00 PM", Namibia vs India A (Link 1)
+https://no.link|User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
