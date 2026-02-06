@@ -1,5 +1,5 @@
 #EXTM3U
-# UPDATED: 2026-02-06 04:53:17 PM IST
+# UPDATED: 2026-02-06 05:00:43 PM IST
 # Total Matches: 4
 
 #EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/19248/image/dark" group-title="ICC T20 World Cup Warm-up 03:00 PM", Italy vs United Arab Emirates (ICC TV)
@@ -30,5 +30,11 @@ https://jcevents.hotstar.com/bpk-tv/4db6f833701e78ae4443cb268020f03b/Fallback/in
 https://fhlsport011.tbwk18wyh08.xyz/token-IBUtk%2BOcL6SGu219wvY6njjSlJqB1CHjOSX%2Fw6QaFGT07uWaHUJeCoMmqBUdXkYZQX7WxzVnkPUnf5tMVBQftpwwHU%2B9PNSyLivZeLVPuRJTXNKFHZZt0fYAj6U%2Fa/cfall/s2001/v3b/0q54s0o4nUE0pQbiY3AaYKEmqwphZ3umqT0lYz9hMD%3D%3D/super/3x_648847.m3u8|referer=https://morgan.h3eaulperhapsfuzkhurried.shop/&user-agent=Mozilla/5.0 (Linux; Android 12; Pixel 6 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Mobile Safari/537.36
 #EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/11191/image/dark" group-title="T20 International 09:30 PM", South Africa vs West Indies (Link 1)
 g|User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
-#EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/19248/image/dark" group-title="ICC T20 World Cup Warm-up 05:00 PM", Namibia vs India A (Link 1)
-https://no.link|User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+#EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/19248/image/dark" group-title="ICC T20 World Cup Warm-up 05:00 PM", Namibia vs India A (ICC TV)
+#KODIPROP:inputstream.adaptive.license_type=clearkey
+#KODIPROP:inputstream.adaptive.license_key=ae7076b647133606b704d33e4cef5134:810251515584cf71216d9a2d1ebf04bb
+https://livem-d-02-icc-ne.akamaized.net/variant/v1/dai-event-prd-pal-west/vcg-01-d/DASH_DASH/Live/channel(vcg-01-ch-hd-08)/manifest.mpd?vcfilter=080ab5c6-2b32-4c7d-b5b3-d6e4b5a5a09a|User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+#EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/19248/image/dark" group-title="ICC T20 World Cup Warm-up 05:00 PM", Namibia vs India A (WILLOW )
+#KODIPROP:inputstream.adaptive.license_type=clearkey
+#KODIPROP:inputstream.adaptive.license_key=2fe62a133fcc92df10a6f9a88cd76069:13402b7c1efebae33e37aa97adf30236
+https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/en0n19qhy7/out/v1/ca5588fbf46b4923bc52c6d26b2c9127/cenc.mpd|User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
