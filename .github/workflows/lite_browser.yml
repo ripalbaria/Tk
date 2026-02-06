@@ -1,0 +1,37 @@
+name: Persistent Browser Lite
+on:
+  schedule:
+    - cron: '*/15 * * * *' # Har 15 min mein auto-run
+  workflow_dispatch: # Manual Button
+
+jobs:
+  run-lite-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Cache setup: Taki browser har baar download na ho
+      - name: Cache Playwright Browsers
+        id: cache-playwright
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-v1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install playwright requests
+          # Sirf tabhi install hoga agar cache nahi mila
+          if [ "${{ steps.cache-playwright.outputs.cache-hit }}" != "true" ]; then
+            playwright install chromium --with-deps
+          fi
+
+      - name: Run Script
+        run: python persistent_debug.py
+
