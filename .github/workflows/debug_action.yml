@@ -1,19 +1,24 @@
-name: Toolkit Link Debugger
-on: workflow_dispatch # Manual run button
+name: Browser Simulation Debugger
+on: 
+  workflow_dispatch: # Manual Button
 
 jobs:
-  debug_job:
+  simulate_browser:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - uses: actions/setup-python@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - name: Install requests
-        run: pip install requests
-      - name: Run Debugger
-        run: python github_debug.py
 
+      - name: Install Dependencies
+        run: |
+          pip install playwright requests
+          # Install browser and system dependencies
+          playwright install chromium --with-deps
+
+      - name: Run Browser Debugger
+        run: python browser_debug.py
