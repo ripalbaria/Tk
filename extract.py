@@ -6,16 +6,25 @@ with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
     page = browser.new_page()
 
-    found = [None]   # ✅ list trick
+    found = [None]
 
     def handle_request(req):
         u = req.url
-        if ".m3u8" in u or "playback.live-video.net" in u:
+        if "playback.live-video.net" in u or ".m3u8" in u:
             found[0] = u
 
     page.on("request", handle_request)
 
-    page.goto(URL, wait_until="networkidle")
+    page.goto(URL)
+
+    # ✅ wait page load
+    page.wait_for_timeout(5000)
+
+    # ✅ simulate user interaction
+    page.mouse.click(400, 400)
+
+    # ✅ wait for stream fetch
+    page.wait_for_timeout(8000)
 
     browser.close()
 
