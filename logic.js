@@ -1,29 +1,18 @@
 const fs = require('fs');
-
 try {
     const html = fs.readFileSync('debug_page.html', 'utf8');
-    // Extract the main obfuscated array seen in 156716.jpg
     const arrayMatch = html.match(/var\s+(_0x[a-f0-9]+)\s*=\s*\[(.*?)\]/);
-    
     if (arrayMatch) {
-        let rawData = arrayMatch[2];
-        // Join pieces and handle the '0%' pattern from Termux screenshots
-        let joined = rawData.replace(/['"\s]/g, '').split(',').join('');
-        let cleaned = joined.replace(/0%/g, '%');
-        let decoded = decodeURIComponent(cleaned);
-        
-        // Final search for Amazon IVS playback URL (Toolkit style)
-        const awsPattern = /https?:\/\/[^\s"'<>]*?playback\.live-video\.net[^\s"'<>]*?m3u8[^\s"'<>]*/;
-        const match = decoded.match(awsPattern);
-        
-        if (match) {
-            console.log(match[0]);
-        } else {
-            // Fallback: search the entire decoded blob for any m3u8
-            const anyM3u8 = decoded.match(/https?:\/\/[^\s"'<>]*?\.m3u8[^\s"'<>]*/);
-            if (anyM3u8) console.log(anyM3u8[0]);
-        }
+        let rawData = arrayMatch[2].replace(/['"\s]/g, '').split(',');
+        // Player logic: Har piece ko individually check karna
+        let decodedStrings = rawData.map(p => {
+            try { return decodeURIComponent(p.replace(/0%/g, '%')); }
+            catch (e) { return ""; }
+        });
+        let finalOutput = decodedStrings.join('');
+        // Search for the AWS link pattern
+        let awsLink = finalOutput.match(/https?:\/\/[^\s"'<>]*?playback\.live-video\.net[^\s"'<>]*?m3u8[^\s"'<>]*/);
+        if (awsLink) console.log(awsLink[0]);
+        else console.log("LINK_NOT_FOUND_IN_DECODED_DATA");
     }
-} catch (e) {
-    console.error("Decoder Error: " + e.message);
-}
+} catch (e) { console.log("ERROR: " + e.message); }
