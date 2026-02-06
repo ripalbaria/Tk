@@ -6,14 +6,12 @@ with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
     page = browser.new_page()
 
-    found = None
+    found = [None]   # ✅ list trick
 
     def handle_request(req):
-        nonlocal found
         u = req.url
-
         if ".m3u8" in u or "playback.live-video.net" in u:
-            found = u
+            found[0] = u
 
     page.on("request", handle_request)
 
@@ -21,8 +19,8 @@ with sync_playwright() as p:
 
     browser.close()
 
-    if found:
-        print(found)
-        open("link.txt", "w").write(found)
+    if found[0]:
+        print(found[0])
+        open("link.txt", "w").write(found[0])
     else:
         print("Not found")
