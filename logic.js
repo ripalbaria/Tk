@@ -2,36 +2,28 @@ const fs = require('fs');
 
 try {
     const html = fs.readFileSync('debug_page.html', 'utf8');
-    // Screenshot 156716 ke mutabiq array dhoondo
-    const arrayMatch = html.match(/var\s+_0x477048\s*=\s*\[(.*?)\]/);
+    // Extract the main obfuscated array seen in 156716.jpg
+    const arrayMatch = html.match(/var\s+(_0x[a-f0-9]+)\s*=\s*\[(.*?)\]/);
     
     if (arrayMatch) {
-        let rawData = arrayMatch[1];
-        // Quotes aur space hata kar array ke pieces nikalo
-        let pieces = rawData.replace(/['"\s]/g, '').split(',');
-        
-        // Browser logic: pieces ko join karo aur cleanup apply karo
-        let fullString = pieces.join('');
-        
-        // Humne dekha ki extra '0' pattern hai: 0%20 -> %20
-        let cleaned = fullString.replace(/0%/g, '%');
-        
-        // Final decoding
+        let rawData = arrayMatch[2];
+        // Join pieces and handle the '0%' pattern from Termux screenshots
+        let joined = rawData.replace(/['"\s]/g, '').split(',').join('');
+        let cleaned = joined.replace(/0%/g, '%');
         let decoded = decodeURIComponent(cleaned);
         
-        // Search for Amazon IVS Link pattern from Toolkit
+        // Final search for Amazon IVS playback URL (Toolkit style)
         const awsPattern = /https?:\/\/[^\s"'<>]*?playback\.live-video\.net[^\s"'<>]*?m3u8[^\s"'<>]*/;
         const match = decoded.match(awsPattern);
         
         if (match) {
             console.log(match[0]);
         } else {
-            // Agar seedha nahi mila, to pure decoded text me dhoondo
-            console.log("NOT_FOUND_BUT_DECODED");
-            console.log(decoded.substring(0, 500)); 
+            // Fallback: search the entire decoded blob for any m3u8
+            const anyM3u8 = decoded.match(/https?:\/\/[^\s"'<>]*?\.m3u8[^\s"'<>]*/);
+            if (anyM3u8) console.log(anyM3u8[0]);
         }
     }
 } catch (e) {
-    console.log("ERROR: " + e.message);
+    console.error("Decoder Error: " + e.message);
 }
-
