@@ -2,14 +2,14 @@ import asyncio
 import os
 from playwright.async_api import async_playwright
 
-async def run_persistent_final():
+async def run_persistent_success():
     async with async_playwright() as p:
-        # Browser session storage
+        # Browser cache storage setup
         user_data_dir = "./browser_session"
         if not os.path.exists(user_data_dir):
             os.makedirs(user_data_dir)
 
-        # 1. Launch Persistent Context (Lite but Smart)
+        # Launching Persistent Context (Mirroring Heavy Script Logic)
         context = await p.chromium.launch_persistent_context(
             user_data_dir,
             headless=True,
@@ -17,47 +17,43 @@ async def run_persistent_final():
         )
         page = context.pages[0] if context.pages else await context.new_page()
 
-        # 2. Advanced Traffic Sniffer (Toolkit Style)
+        # SUCCESS LOGIC: EXACT same listener used in 'simulate_browser' (156796.jpg)
         found_aws_link = None
-        async def sniff(request):
+        async def on_request(request):
             nonlocal found_aws_link
-            # Catching the exact pattern from your success run
+            # Toolkit style pattern from your success screenshot
             if "playback.live-video.net" in request.url and ".m3u8" in request.url:
                 found_aws_link = request.url
 
-        page.on("request", sniff)
+        page.on("request", on_request)
 
-        url = "https://allrounderlive.pages.dev/dilz?id=65656576"
-        print(f"📡 Universal Scanning: {url}")
+        # Target Channel ID
+        target_id = "65656576"
+        url = f"https://allrounderlive.pages.dev/dilz?id={target_id}"
+        print(f"📡 Mirror Scanning: {url}")
 
         try:
-            # 3. Wait for full network idle (Heavy script logic)
+            # 1. Wait until network is fully IDLE (Heavy script strategy)
             await page.goto(url, wait_until="networkidle", timeout=60000)
             
-            # 🔥 MULTI-CLICK TRIGGER: Alag-alag jagah click karke player force karein
-            print("🖱️ Simulating aggressive user interaction...")
-            coords = [(100, 100), (300, 300), (50, 50)]
-            for x, y in coords:
-                await page.mouse.click(x, y)
-                await asyncio.sleep(1)
-
-            # ⏳ WAIT TIME: Success run 47s chala tha, hum bhi wahi karenge
-            print("⏳ Final wait for dynamic token (30s)...")
-            await asyncio.sleep(30) 
+            # 2. TRIGGER interaction exactly like 156796.jpg
+            print("🖱️ Simulating Success Interaction (Clicking stream)...")
+            await page.mouse.click(100, 100)
+            
+            # 3. PATIENCE: Wait for the EXACT same duration that worked (45-50s)
+            print("⏳ Waiting for background traffic capture (30s)...")
+            await asyncio.sleep(30)
 
             if found_aws_link:
-                print(f"✅ SUCCESS! LINK CAPTURED: {found_aws_link}")
-                # Save it permanently
+                print(f"✅ SUCCESS! TOOLKIT LINK CAPTURED: {found_aws_link}")
+                # Write to file for playlist update
                 with open("live_link.txt", "w") as f:
                     f.write(found_aws_link)
             else:
-                print("❌ Link nahi mila. Trying fallback source scan...")
-                # Backup: Check if link is in page source
-                content = await page.content()
-                if "playback.live-video.net" in content:
-                    print("💡 Link found in raw HTML source!")
-                else:
-                    print("😢 Stream not triggered. Match might be offline.")
+                # Fallback: Print what browser actually sees
+                print("❌ Link nahi mila traffic me.")
+                title = await page.title()
+                print(f"💡 Page Status: {title}")
 
         except Exception as e:
             print(f"💥 Browser Error: {e}")
@@ -65,4 +61,4 @@ async def run_persistent_final():
         await context.close()
 
 if __name__ == "__main__":
-    asyncio.run(run_persistent_final())
+    asyncio.run(run_persistent_success())
