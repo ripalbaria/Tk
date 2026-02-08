@@ -1,5 +1,5 @@
 #EXTM3U
-# UPDATED: 2026-02-08 07:20:29 PM IST
+# UPDATED: 2026-02-08 07:30:52 PM IST
 # Total Matches: 2
 
 #EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/11185/image/dark" group-title="ICC T20 World Cup 03:00 PM", England vs Nepal (PRIME)
@@ -24,6 +24,10 @@ https://live-d-01-icc-we.akamaized.net/variant/v1blackout/vcg-01-d/DASH_DASH/Liv
 #KODIPROP:inputstream.adaptive.license_type=clearkey
 #KODIPROP:inputstream.adaptive.license_key=7fce97a407353d25b9eaa30fc7912cb0:9e85cdfd40ef00f30d1efda90645a1f0
 https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/ceirtxu4zb/out/v1/696d22efd0ac49aba1dfbdc79abc4526/cenc.mpd|User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+#EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/11185/image/dark" group-title="ICC T20 World Cup 07:00 PM", Sri Lanka vs Ireland (HINDI)
+#KODIPROP:inputstream.adaptive.license_type=clearkey
+#KODIPROP:inputstream.adaptive.license_key=ae7076b647133606b704d33e4cef5134:810251515584cf71216d9a2d1ebf04bb
+https://live-d-01-icc-we.akamaized.net/variant/v1blackout/vcg-01-d/DASH_DASH/Live/channel(vcg-01-ch-hd-04)/hdntl=exp=1770584031~acl=%2fvariant%2fv1blackout%2fvcg-01-d%2f*~id=2b1123b7-8508-49a2-bff6-e089eec0fbbf~data=hdntl~hmac=c6f654deefc3184bc38a612525bb3224838eb697e023ff9591cf305db8993648/manifest.mpd|User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
 #EXTINF:-1 tvg-logo="http://api.sofascore.com/api/v1/unique-tournament/11185/image/dark" group-title="ICC T20 World Cup 07:00 PM", Sri Lanka vs Ireland (PRIME )
 #KODIPROP:inputstream.adaptive.license_type=clearkey
 #KODIPROP:inputstream.adaptive.license_key=ed76c18710d621a87c89dedc7c13019f:7241c82fe48525a9dc6be6d7bb86611f
